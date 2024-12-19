@@ -1,5 +1,12 @@
-import React from "react";
-import { Modal, Box, Typography, TextField, Button } from "@mui/material";
+import React, { useState } from "react";
+import {
+  Modal,
+  Box,
+  Typography,
+  TextField,
+  Button,
+  Select,
+} from "@mui/material";
 
 const modalStyle = {
   position: "absolute" as const,
@@ -13,18 +20,14 @@ const modalStyle = {
   p: 4,
 };
 
-interface AddUserModalProps {
+interface UserModalProps {
   open: boolean;
   onClose: () => void;
   onAddUser: (formData: { name: string; email: string; role: string }) => void;
 }
 
-const UserModal: React.FC<AddUserModalProps> = ({
-  open,
-  onClose,
-  onAddUser,
-}) => {
-  const [formData, setFormData] = React.useState({
+const UserModal: React.FC<UserModalProps> = ({ open, onClose, onAddUser }) => {
+  const [formData, setFormData] = useState({
     name: "",
     email: "",
     role: "",
@@ -71,6 +74,10 @@ const UserModal: React.FC<AddUserModalProps> = ({
           onChange={handleChange}
           margin="normal"
         />
+        <Select>
+          <option value="admin">Admin</option>
+          <option value="user">User</option>
+        </Select>
         <Box sx={{ textAlign: "right", marginTop: "16px" }}>
           <Button variant="contained" onClick={handleSubmit}>
             Add
