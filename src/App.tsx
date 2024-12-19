@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Dashboard from "./pages/Dashboard";
 import Users from "./pages/Users";
 import Layout from "./components/Layout";
-import Parent from "./playground/propsTest/Parent";
+import Parent from "./playground/useEffectTest/Parent";
 
 const App: React.FC = () => {
   return (
