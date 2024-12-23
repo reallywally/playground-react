@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Typography,
   Table,
@@ -11,6 +11,7 @@ import {
   Button,
 } from "@mui/material";
 import UserModal from "../components/user/UserModal";
+import { fetchUsers, addUser } from "../api/usersApi";
 
 const usersInitial = [
   { id: 1, name: "Alice Johnson", email: "alice@example.com", role: "Admin" },
@@ -39,6 +40,22 @@ const Users: React.FC = () => {
   }) => {
     setUsers([...users, { id: users.length + 1, ...newUser }]);
   };
+
+  const loadUsers = async () => {
+    try {
+      const usersData = await fetchUsers();
+      setUsers(usersData);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+    } finally {
+      console.log("Users fetched successfully");
+    }
+  };
+
+  // Fetch users on component mount
+  useEffect(() => {
+    loadUsers();
+  }, []);
 
   return (
     <div>
