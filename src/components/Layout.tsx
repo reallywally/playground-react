@@ -51,6 +51,9 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             <ListItem button component={Link} to="/playground">
               <ListItemText primary="Playground" />
             </ListItem>
+            <ListItem button component={Link} to="/json-editor">
+              <ListItemText primary="Json Editor" />
+            </ListItem>
           </List>
         </Box>
       </Drawer>
