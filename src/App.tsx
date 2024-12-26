@@ -4,7 +4,7 @@ import Dashboard from "./pages/Dashboard";
 import Users from "./pages/Users";
 import Layout from "./components/Layout";
 import Parent from "./playground/useEffectTest/Parent";
-import ReactJsonEditorAjrm from "./playground/jsonEditorTest/reactJsonEditorAjrm";
+import JsonEditor from "./playground/jsonEditorTest/JsonEditor";
 
 const App: React.FC = () => {
   return (
@@ -14,7 +14,7 @@ const App: React.FC = () => {
           <Route path="/" element={<Dashboard />} />
           <Route path="/users" element={<Users />} />
           <Route path="/playground" element={<Parent />} />
-          <Route path="/json-editor" element={<ReactJsonEditorAjrm />} />
+          <Route path="/json-editor" element={<JsonEditor />} />
         </Routes>
       </Layout>
     </Router>

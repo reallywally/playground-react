@@ -1,15 +1,15 @@
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import Editor from "@monaco-editor/react";
 
-function reactJsonEditorAjrm() {
+function JsonEditor() {
   const editorRef = useRef(null);
 
-  function handleEditorDidMount(editor, monaco) {
+  function handleEditorDidMount(editor: null, monaco: unknown) {
     editorRef.current = editor;
   }
 
   function showValue() {
-    console.log(editorRef.current);
+    console.log(editorRef.current.getValue());
   }
 
   return (
@@ -21,9 +21,12 @@ function reactJsonEditorAjrm() {
         defaultLanguage="json"
         defaultValue="// some comment"
         onMount={handleEditorDidMount}
+        onValidate={(markers) => {
+          console.log("onValidate", markers);
+        }}
       />
     </div>
   );
 }
 
-export default reactJsonEditorAjrm;
+export default JsonEditor;
