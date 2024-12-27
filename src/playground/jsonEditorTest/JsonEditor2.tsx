@@ -35,7 +35,9 @@ const MonacoEditorComponent: React.FC = () => {
     <div>
       <button
         onClick={() => {
-          console.log("Editor Code Ref:", codeRef.current); // useRef 값
+          console.log("Editor Code Ref:", codeRef.current);
+          // codeRef.current에 문법 에러가 없으면 그대로 서버로 보내서 dict로 받을 수 있고
+          // 문법 에러가 있으면 서버가 받을때 str로 받음
         }}
       >
         click!
