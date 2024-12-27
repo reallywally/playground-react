@@ -25,6 +25,7 @@ function JsonEditor() {
           console.log("onValidate", markers);
         }}
       />
+      <div></div>
     </div>
   );
 }
