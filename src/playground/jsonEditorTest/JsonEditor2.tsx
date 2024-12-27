@@ -28,7 +28,6 @@ const MonacoEditorComponent: React.FC = () => {
   };
 
   const handleEditorChange = (value: string | undefined) => {
-    // setCode(value || "");
     codeRef.current = value || ""; // 코드 저장
   };
 
