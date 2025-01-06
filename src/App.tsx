@@ -6,6 +6,7 @@ import Layout from "./components/Layout";
 import Parent from "./playground/propsTest/Parent";
 import JsonEditor from "./playground/jsonEditorTest/JsonEditor";
 import JsonEditor2 from "./playground/jsonEditorTest/JsonEditor2";
+import DataTableTest from "./playground/dataTableTest/DataTableTest";
 
 const App: React.FC = () => {
   return (
@@ -16,6 +17,7 @@ const App: React.FC = () => {
           <Route path="/users" element={<Users />} />
           <Route path="/props-test" element={<Parent />} />
           <Route path="/json-editor" element={<JsonEditor2 />} />
+          <Route path="/data-table-test" element={<DataTableTest />} />
         </Routes>
       </Layout>
     </Router>

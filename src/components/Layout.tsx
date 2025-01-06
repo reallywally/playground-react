@@ -54,6 +54,9 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             <ListItem button component={Link} to="/json-editor">
               <ListItemText primary="Json Editor" />
             </ListItem>
+            <ListItem button component={Link} to="/data-table-test">
+              <ListItemText primary="Data Table Test" />
+            </ListItem>
           </List>
         </Box>
       </Drawer>
