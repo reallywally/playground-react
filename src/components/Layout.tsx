@@ -51,6 +51,9 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             <ListItem button component={Link} to="/playground">
               <ListItemText primary="Playground" />
             </ListItem>
+            <ListItem button component={Link} to="/use-state-test">
+              <ListItemText primary="UseStateTest" />
+            </ListItem>
           </List>
         </Box>
       </Drawer>
