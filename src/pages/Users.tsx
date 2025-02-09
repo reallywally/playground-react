@@ -11,7 +11,7 @@ import {
   Button,
 } from "@mui/material";
 import UserModal from "../components/user/UserModal";
-//import { fetchUsers, addUser } from "../api/usersApi.ts";
+// import { fetchUsers, addUser } from "../api/usersApi";
 
 const usersInitial = [
   { id: 1, name: "Alice Johnson", email: "alice@example.com", role: "Admin" },
