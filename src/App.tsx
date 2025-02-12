@@ -8,6 +8,7 @@ import JsonEditor from "./playground/jsonEditorTest/JsonEditor";
 import JsonEditor2 from "./playground/jsonEditorTest/JsonEditor2";
 import DataTableTest from "./playground/dataTableTest/DataTableTest";
 import UseStateTest from "./playground/useStateTest/Main";
+import Counter from "./playground/useEffectTest/Counter";
 
 const App: React.FC = () => {
   return (
@@ -20,6 +21,7 @@ const App: React.FC = () => {
           <Route path="/json-editor" element={<JsonEditor2 />} />
           <Route path="/data-table-test" element={<DataTableTest />} />
           <Route path="/use-state-test" element={<UseStateTest />} />
+          <Route path="/use-effect-test" element={<Counter />} />
         </Routes>
       </Layout>
     </Router>
