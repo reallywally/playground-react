@@ -1,4 +1,5 @@
 import React from "react";
+import "./App.css";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Dashboard from "./pages/Dashboard";
 import Users from "./pages/Users";
@@ -10,6 +11,7 @@ import DataTableTest from "./playground/dataTableTest/DataTableTest";
 import UseStateTest from "./playground/useStateTest/Main";
 import Counter from "./playground/useEffectTest/Counter";
 import MindMapTest from "./playground/mindmapTest/MindMapTest";
+import GanttChartMain from "./playground/ganttChart/GanttChartMain";
 
 const App: React.FC = () => {
   return (
@@ -24,6 +26,7 @@ const App: React.FC = () => {
           <Route path="/use-state-test" element={<UseStateTest />} />
           <Route path="/use-effect-test" element={<Counter />} />
           <Route path="/mindmap-test" element={<MindMapTest />} />
+          <Route path="/gantt-chart-test" element={<GanttChartMain />} />
         </Routes>
       </Layout>
     </Router>
