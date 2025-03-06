@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 
 interface User {
   id: number;
@@ -11,7 +11,10 @@ interface Child1Props {
 }
 
 const Child1: React.FC<Child1Props> = ({ users }) => {
-  console.log("Child1 rendered");
+  useEffect(() => {
+    console.log(users);
+  }, []);
+
   return (
     <div>
       <ul>

@@ -7,7 +7,7 @@ function ExpensiveComponent({ value }) {
   return <div>{value + 100}</div>;
 }
 
-const MemoTest = () => {
+const UseMemoTest = () => {
   const [value, setValue] = useState(0);
   const [, triggerRendering] = useState(false);
 
@@ -33,4 +33,4 @@ const MemoTest = () => {
   );
 };
 
-export default MemoTest;
+export default UseMemoTest;

@@ -12,6 +12,7 @@ import UseStateTest from "./playground/useStateTest/Main";
 import Counter from "./playground/useEffectTest/Counter";
 import MindMapTest from "./playground/mindmapTest/MindMapTest";
 import GanttChartMain from "./playground/ganttChart/GanttChartMain";
+import UseMemoTest from "./playground/useMemoTest/Main";
 
 const App: React.FC = () => {
   return (
@@ -27,6 +28,7 @@ const App: React.FC = () => {
           <Route path="/use-effect-test" element={<Counter />} />
           <Route path="/mindmap-test" element={<MindMapTest />} />
           <Route path="/gantt-chart-test" element={<GanttChartMain />} />
+          <Route path="/use-memo-test" element={<UseMemoTest />} />
         </Routes>
       </Layout>
     </Router>
