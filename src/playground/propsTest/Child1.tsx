@@ -1,4 +1,6 @@
 import React, { useEffect } from "react";
+import { useAtom } from "jotai";
+import { projectAtom } from "../../atoms/projectAtom";
 
 interface User {
   id: number;
@@ -11,6 +13,8 @@ interface Child1Props {
 }
 
 const Child1: React.FC<Child1Props> = ({ users }) => {
+  const [project] = useAtom(projectAtom);
+
   useEffect(() => {
     console.log(users);
   }, []);
@@ -24,6 +28,10 @@ const Child1: React.FC<Child1Props> = ({ users }) => {
           </li>
         ))}
       </ul>
+
+      <div>
+        <h2>Project: {project}</h2>
+      </div>
     </div>
   );
 };
