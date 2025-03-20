@@ -20,9 +20,21 @@ interface Task {
   subTasks: SubTask[];
 }
 
+interface DateCell {
+  date: Date;
+  day: number;
+  month: number;
+  year: number;
+}
+
 const GanttChart: React.FC = () => {
   // 간트 차트 스크롤 영역 참조
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  // 드래그앤드롭 상태 관리
+  const [isDragging, setIsDragging] = useState<boolean>(false);
+  const [startX, setStartX] = useState<number>(0);
+  const [scrollLeft, setScrollLeft] = useState<number>(0);
 
   // 샘플 데이터
   const [tasks, setTasks] = useState<Task[]>([
@@ -74,6 +86,24 @@ const GanttChart: React.FC = () => {
         },
       ],
     },
+    {
+      id: 3,
+      title: "개발",
+      startDate: "2025-03-25",
+      endDate: "2025-04-30",
+      assignee: "홍길동",
+      expanded: false,
+      subTasks: [],
+    },
+    {
+      id: 4,
+      title: "디자인",
+      startDate: "2025-03-19",
+      endDate: "2025-03-23",
+      assignee: "김영수",
+      expanded: false,
+      subTasks: [],
+    },
   ]);
 
   // 새 업무 템플릿
@@ -101,8 +131,9 @@ const GanttChart: React.FC = () => {
     parentId,
   });
 
-  // 날짜 범위 계산
-  const calculateDateRange = (): { minDate: Date; maxDate: Date } => {
+  // 날짜 배열 생성
+  const generateDateCells = (): DateCell[] => {
+    // 프로젝트의 시작일과 종료일을 계산
     let minDate = new Date();
     let maxDate = new Date();
 
@@ -122,99 +153,112 @@ const GanttChart: React.FC = () => {
       });
     });
 
-    // 시작일에서 1일 빼고, 종료일에 1일 더해서 여유 공간 확보
-    minDate.setDate(minDate.getDate() - 1);
-    maxDate.setDate(maxDate.getDate() + 1);
+    // 시작일에서 최소 3일 전부터 시작
+    minDate.setDate(minDate.getDate() - 3);
+    // 종료일에서 최소 3일 후까지 표시
+    maxDate.setDate(maxDate.getDate() + 3);
 
-    return { minDate, maxDate };
-  };
+    // 날짜 셀 배열 생성
+    const cells: DateCell[] = [];
+    const currentDate = new Date(minDate);
 
-  const dateRange = calculateDateRange();
-  const totalDays = Math.ceil(
-    (dateRange.maxDate.getTime() - dateRange.minDate.getTime()) /
-      (24 * 60 * 60 * 1000)
-  );
+    while (currentDate <= maxDate) {
+      cells.push({
+        date: new Date(currentDate),
+        day: currentDate.getDate(),
+        month: currentDate.getMonth(),
+        year: currentDate.getFullYear(),
+      });
 
-  // 일 단위 헤더 생성
-  const generateDateHeaders = (): JSX.Element[] => {
-    const headers: JSX.Element[] = [];
-    const currentDate = new Date(dateRange.minDate);
-
-    for (let i = 0; i < totalDays; i++) {
-      headers.push(
-        <div key={`date-${i}`} className="text-center text-xs p-1 border-r w-8">
-          {currentDate.getDate()}
-        </div>
-      );
       currentDate.setDate(currentDate.getDate() + 1);
     }
 
-    return headers;
+    return cells;
   };
 
-  // 월 단위 헤더 생성 - 수정된 버전
+  const dateCells = generateDateCells();
+
+  // 월 단위 헤더 생성
   const generateMonthHeaders = (): JSX.Element[] => {
-    const months: JSX.Element[] = [];
-    const currentDate = new Date(dateRange.minDate);
+    const monthHeaders: JSX.Element[] = [];
+    let currentYear = -1;
+    let currentMonth = -1;
+    let startIdx = 0;
 
-    let monthStart = 0;
-    let daysInCurrentMonth = 0;
-    let currentMonth = currentDate.getMonth();
-    let currentYear = currentDate.getFullYear();
+    dateCells.forEach((cell, idx) => {
+      if (cell.month !== currentMonth || cell.year !== currentYear) {
+        // 새로운 월이 시작될 때 이전 월 헤더 추가
+        if (currentMonth !== -1) {
+          const colSpan = idx - startIdx;
+          monthHeaders.push(
+            <div
+              key={`month-${currentYear}-${currentMonth}`}
+              className="text-center font-semibold bg-gray-100 border-r border-b py-1"
+              style={{ gridColumnStart: startIdx + 1, gridColumnEnd: idx + 1 }}
+            >
+              {`${currentYear}년 ${currentMonth + 1}월`}
+            </div>
+          );
+        }
 
-    for (let i = 0; i < totalDays; i++) {
-      const day = new Date(currentDate);
-      day.setDate(day.getDate() + i);
-
-      // 월이 바뀌거나 마지막 날인 경우
-      if (day.getMonth() !== currentMonth || i === totalDays - 1) {
-        // 현재 월에 대한 헤더 추가
-        months.push(
-          <div
-            key={`month-${currentYear}-${currentMonth}`}
-            className="text-center font-semibold border-r bg-gray-100"
-            style={{
-              gridColumnStart: monthStart + 1,
-              gridColumnEnd: monthStart + daysInCurrentMonth + 1,
-            }}
-          >
-            {new Date(currentYear, currentMonth).toLocaleString("ko-KR", {
-              month: "short",
-              year: "numeric",
-            })}
-          </div>
-        );
-
-        // 다음 월을 위한 초기화
-        monthStart += daysInCurrentMonth;
-        daysInCurrentMonth = 1;
-        currentMonth = day.getMonth();
-        currentYear = day.getFullYear();
-      } else {
-        daysInCurrentMonth++;
+        // 새 월 시작점 업데이트
+        startIdx = idx;
+        currentMonth = cell.month;
+        currentYear = cell.year;
       }
+    });
+
+    // 마지막 월 헤더 추가
+    if (currentMonth !== -1) {
+      monthHeaders.push(
+        <div
+          key={`month-${currentYear}-${currentMonth}`}
+          className="text-center font-semibold bg-gray-100 border-r border-b py-1"
+          style={{
+            gridColumnStart: startIdx + 1,
+            gridColumnEnd: dateCells.length + 1,
+          }}
+        >
+          {`${currentYear}년 ${currentMonth + 1}월`}
+        </div>
+      );
     }
 
-    return months;
+    return monthHeaders;
   };
 
   // 간트 차트 바 위치 계산
   const calculateBarPosition = (
     startDate: string,
     endDate: string
-  ): { startOffset: number; duration: number } => {
+  ): { startDay: number; duration: number } => {
     const start = new Date(startDate);
     const end = new Date(endDate);
 
-    const startOffset = Math.round(
-      (start.getTime() - dateRange.minDate.getTime()) / (24 * 60 * 60 * 1000)
-    );
-    const duration = Math.max(
-      1,
-      Math.round((end.getTime() - start.getTime()) / (24 * 60 * 60 * 1000)) + 1
+    // 시작 인덱스 찾기
+    const startDayIdx = dateCells.findIndex(
+      (cell) =>
+        cell.date.getFullYear() === start.getFullYear() &&
+        cell.date.getMonth() === start.getMonth() &&
+        cell.date.getDate() === start.getDate()
     );
 
-    return { startOffset, duration };
+    // 종료 인덱스 찾기
+    const endDayIdx = dateCells.findIndex(
+      (cell) =>
+        cell.date.getFullYear() === end.getFullYear() &&
+        cell.date.getMonth() === end.getMonth() &&
+        cell.date.getDate() === end.getDate()
+    );
+
+    // 찾지 못한 경우 기본값
+    const startDay = startDayIdx !== -1 ? startDayIdx : 0;
+    const endDay = endDayIdx !== -1 ? endDayIdx : dateCells.length - 1;
+
+    return {
+      startDay,
+      duration: endDay - startDay + 1,
+    };
   };
 
   // 업무 확장/축소 토글
@@ -277,6 +321,98 @@ const GanttChart: React.FC = () => {
     }
   };
 
+  // 드래그 핸들러
+  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!scrollContainerRef.current) return;
+
+    setIsDragging(true);
+    setStartX(e.pageX - scrollContainerRef.current.offsetLeft);
+    setScrollLeft(scrollContainerRef.current.scrollLeft);
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isDragging || !scrollContainerRef.current) return;
+
+    e.preventDefault();
+    const x = e.pageX - scrollContainerRef.current.offsetLeft;
+    const walk = (x - startX) * 1.5; // 스크롤 속도 조정
+
+    // 모든 스크롤 영역에 같은 스크롤 위치 적용
+    document.querySelectorAll(".scroll-sync").forEach((el) => {
+      if (el instanceof HTMLElement) {
+        el.scrollLeft = scrollLeft - walk;
+      }
+    });
+  };
+
+  // 요소의 동일한 스크롤 위치 유지
+  useEffect(() => {
+    const handleScroll = (e: Event) => {
+      const scrollTarget = e.target as HTMLElement;
+      const scrollLeft = scrollTarget.scrollLeft;
+
+      // 모든 스크롤 영역에 같은 스크롤 위치 적용
+      document.querySelectorAll(".scroll-sync").forEach((el) => {
+        if (el !== scrollTarget && el instanceof HTMLElement) {
+          el.scrollLeft = scrollLeft;
+        }
+      });
+    };
+
+    const scrollElements = document.querySelectorAll(".scroll-sync");
+    scrollElements.forEach((el) => {
+      el.addEventListener("scroll", handleScroll);
+    });
+
+    return () => {
+      scrollElements.forEach((el) => {
+        el.removeEventListener("scroll", handleScroll);
+      });
+    };
+  }, []);
+
+  // 드래그 이벤트가 끝났을 때 document에서 이벤트 리스너 제거
+  useEffect(() => {
+    const handleGlobalMouseUp = () => {
+      if (isDragging) {
+        setIsDragging(false);
+      }
+    };
+
+    const handleGlobalMouseMove = (e: MouseEvent) => {
+      if (!isDragging || !scrollContainerRef.current) return;
+
+      e.preventDefault();
+      const x = e.pageX - scrollContainerRef.current.offsetLeft;
+      const walk = (x - startX) * 1.5;
+
+      document.querySelectorAll(".scroll-sync").forEach((el) => {
+        if (el instanceof HTMLElement) {
+          el.scrollLeft = scrollLeft - walk;
+        }
+      });
+    };
+
+    if (isDragging) {
+      document.addEventListener("mouseup", handleGlobalMouseUp);
+      document.addEventListener("mousemove", handleGlobalMouseMove);
+    }
+
+    return () => {
+      document.removeEventListener("mouseup", handleGlobalMouseUp);
+      document.removeEventListener("mousemove", handleGlobalMouseMove);
+    };
+  }, [isDragging, startX, scrollLeft]);
+
+  // 커서 스타일 관리
+  const getCursorStyle = () => {
+    return isDragging ? "grabbing" : "grab";
+  };
+
   return (
     <div className="p-4 bg-white rounded shadow-md">
       <h2 className="text-xl font-bold mb-4">프로젝트 간트 차트</h2>
@@ -291,102 +427,172 @@ const GanttChart: React.FC = () => {
       </div>
 
       <div className="flex flex-col">
-        <div className="flex border-b">
-          {/* 고정 영역 */}
-          <div className="flex" style={{ minWidth: "260px" }}>
-            <div className="font-bold p-2 w-64">업무</div>
-          </div>
-          <div className="flex" style={{ minWidth: "96px" }}>
-            <div className="font-bold p-2 w-32">시작일</div>
-          </div>
-          <div className="flex" style={{ minWidth: "96px" }}>
-            <div className="font-bold p-2 w-32">종료일</div>
-          </div>
-          <div className="flex" style={{ minWidth: "96px" }}>
-            <div className="font-bold p-2 w-32">담당자</div>
+        {/* 헤더 영역 */}
+        <div className="flex">
+          {/* 고정 헤더 */}
+          <div className="flex-none" style={{ width: "550px" }}>
+            <div className="grid grid-cols-4">
+              <div className="font-bold p-2 border-b border-r">업무</div>
+              <div className="font-bold p-2 border-b border-r">시작일</div>
+              <div className="font-bold p-2 border-b border-r">종료일</div>
+              <div className="font-bold p-2 border-b border-r">담당자</div>
+            </div>
           </div>
 
-          {/* 스크롤 영역 */}
-          <div className="flex-grow overflow-x-auto" ref={scrollContainerRef}>
-            <div className="grid grid-flow-col auto-cols-min">
+          {/* 스크롤 가능한 날짜 헤더 */}
+          <div
+            ref={scrollContainerRef}
+            className="flex-grow overflow-x-auto scroll-sync"
+            style={{
+              scrollbarWidth: "none",
+              msOverflowStyle: "none",
+              cursor: getCursorStyle(),
+            }}
+            onMouseDown={handleMouseDown}
+            onMouseUp={handleMouseUp}
+            onMouseMove={handleMouseMove}
+          >
+            {/* 스크롤바 숨김 스타일 */}
+            <style jsx>{`
+              .scroll-sync::-webkit-scrollbar {
+                display: none;
+              }
+            `}</style>
+
+            {/* 월 헤더 */}
+            <div
+              className="grid"
+              style={{
+                gridTemplateColumns: `repeat(${dateCells.length}, 40px)`,
+                minWidth: `${dateCells.length * 40}px`,
+              }}
+            >
               {generateMonthHeaders()}
             </div>
-            <div className="grid grid-flow-col auto-cols-min">
-              {generateDateHeaders()}
+
+            {/* 일 헤더 */}
+            <div
+              className="grid"
+              style={{
+                gridTemplateColumns: `repeat(${dateCells.length}, 40px)`,
+                minWidth: `${dateCells.length * 40}px`,
+              }}
+            >
+              {dateCells.map((cell, idx) => (
+                <div
+                  key={`day-${idx}`}
+                  className="text-center text-sm p-1 border-r border-b"
+                >
+                  {cell.day}
+                </div>
+              ))}
             </div>
           </div>
         </div>
 
+        {/* 업무 목록 */}
         {tasks.map((task) => (
           <React.Fragment key={task.id}>
             <div className="flex border-b hover:bg-gray-50">
               {/* 고정 영역 */}
-              <div className="flex items-center p-2 w-64">
-                <button
-                  onClick={() => toggleExpand(task.id)}
-                  className="mr-2 w-6 h-6 flex items-center justify-center"
-                >
-                  {task.expanded ? "−" : "+"}
-                </button>
-                <input
-                  type="text"
-                  value={task.title}
-                  onChange={(e) => updateTask(task.id, "title", e.target.value)}
-                  className="border-b border-transparent hover:border-gray-300 focus:border-blue-500 outline-none flex-grow"
-                />
-              </div>
-              <div className="p-2 w-32">
-                <input
-                  type="date"
-                  value={task.startDate}
-                  onChange={(e) =>
-                    updateTask(task.id, "startDate", e.target.value)
-                  }
-                  className="border rounded p-1 w-full"
-                />
-              </div>
-              <div className="p-2 w-32">
-                <input
-                  type="date"
-                  value={task.endDate}
-                  onChange={(e) =>
-                    updateTask(task.id, "endDate", e.target.value)
-                  }
-                  className="border rounded p-1 w-full"
-                />
-              </div>
-              <div className="p-2 w-32">
-                <input
-                  type="text"
-                  value={task.assignee}
-                  onChange={(e) =>
-                    updateTask(task.id, "assignee", e.target.value)
-                  }
-                  placeholder="담당자"
-                  className="border rounded p-1 w-full"
-                />
+              <div
+                className="flex-none grid grid-cols-4"
+                style={{ width: "550px" }}
+              >
+                <div className="p-2 border-r flex items-center">
+                  <button
+                    onClick={() => toggleExpand(task.id)}
+                    className="mr-2 w-6 h-6 flex items-center justify-center"
+                  >
+                    {task.expanded ? "−" : "+"}
+                  </button>
+                  <input
+                    type="text"
+                    value={task.title}
+                    onChange={(e) =>
+                      updateTask(task.id, "title", e.target.value)
+                    }
+                    className="border-b border-transparent hover:border-gray-300 focus:border-blue-500 outline-none flex-grow"
+                  />
+                </div>
+                <div className="p-2 border-r">
+                  <input
+                    type="date"
+                    value={task.startDate}
+                    onChange={(e) =>
+                      updateTask(task.id, "startDate", e.target.value)
+                    }
+                    className="border rounded p-1 w-full"
+                  />
+                </div>
+                <div className="p-2 border-r">
+                  <input
+                    type="date"
+                    value={task.endDate}
+                    onChange={(e) =>
+                      updateTask(task.id, "endDate", e.target.value)
+                    }
+                    className="border rounded p-1 w-full"
+                  />
+                </div>
+                <div className="p-2 border-r">
+                  <input
+                    type="text"
+                    value={task.assignee}
+                    onChange={(e) =>
+                      updateTask(task.id, "assignee", e.target.value)
+                    }
+                    placeholder="담당자"
+                    className="border rounded p-1 w-full"
+                  />
+                </div>
               </div>
 
-              {/* 스크롤 영역 */}
-              <div className="flex-grow overflow-hidden">
-                <div className="relative h-10 grid grid-flow-col auto-cols-min">
-                  {generateDateHeaders().map((_, index) => (
-                    <div
-                      key={`bg-${index}`}
-                      className="w-8 h-full border-r"
-                    ></div>
-                  ))}
+              {/* 스크롤 영역 - 간트 바 */}
+              <div
+                className="flex-grow overflow-x-auto scroll-sync"
+                style={{
+                  scrollbarWidth: "none",
+                  msOverflowStyle: "none",
+                  cursor: getCursorStyle(),
+                }}
+                onMouseDown={handleMouseDown}
+                onMouseUp={handleMouseUp}
+                onMouseMove={handleMouseMove}
+              >
+                <div
+                  className="relative"
+                  style={{
+                    height: "42px",
+                    minWidth: `${dateCells.length * 40}px`,
+                  }}
+                >
+                  <div
+                    className="grid absolute inset-0"
+                    style={{
+                      gridTemplateColumns: `repeat(${dateCells.length}, 40px)`,
+                    }}
+                  >
+                    {dateCells.map((_, idx) => (
+                      <div
+                        key={`grid-${idx}`}
+                        className="border-r h-full"
+                      ></div>
+                    ))}
+                  </div>
+
                   {(() => {
-                    const { startOffset, duration } = calculateBarPosition(
+                    const { startDay, duration } = calculateBarPosition(
                       task.startDate,
                       task.endDate
                     );
                     return (
                       <div
-                        className="absolute h-6 mt-2 rounded bg-blue-500 text-white text-xs flex items-center justify-center px-1 overflow-hidden"
+                        className="absolute h-8 mt-1 rounded bg-blue-500 text-white text-sm flex items-center justify-center px-2 overflow-hidden"
                         style={{
-                          left: `${startOffset * 32}px`,
-                          width: `${duration * 32 - 4}px`,
+                          left: `${startDay * 40}px`,
+                          width: `${duration * 40 - 4}px`,
+                          zIndex: 1,
                         }}
                       >
                         {task.title}
@@ -397,96 +603,127 @@ const GanttChart: React.FC = () => {
               </div>
             </div>
 
+            {/* 하위 업무 */}
             {task.expanded &&
               task.subTasks.map((subTask) => (
                 <div key={subTask.id} className="flex border-b bg-gray-50">
                   {/* 고정 영역 */}
-                  <div className="p-2 pl-10 w-64">
-                    <input
-                      type="text"
-                      value={subTask.title}
-                      onChange={(e) =>
-                        updateTask(
-                          subTask.id,
-                          "title",
-                          e.target.value,
-                          true,
-                          task.id
-                        )
-                      }
-                      className="border-b border-transparent hover:border-gray-300 focus:border-blue-500 outline-none w-full"
-                    />
-                  </div>
-                  <div className="p-2 w-32">
-                    <input
-                      type="date"
-                      value={subTask.startDate}
-                      onChange={(e) =>
-                        updateTask(
-                          subTask.id,
-                          "startDate",
-                          e.target.value,
-                          true,
-                          task.id
-                        )
-                      }
-                      className="border rounded p-1 w-full"
-                    />
-                  </div>
-                  <div className="p-2 w-32">
-                    <input
-                      type="date"
-                      value={subTask.endDate}
-                      onChange={(e) =>
-                        updateTask(
-                          subTask.id,
-                          "endDate",
-                          e.target.value,
-                          true,
-                          task.id
-                        )
-                      }
-                      className="border rounded p-1 w-full"
-                    />
-                  </div>
-                  <div className="p-2 w-32">
-                    <input
-                      type="text"
-                      value={subTask.assignee}
-                      onChange={(e) =>
-                        updateTask(
-                          subTask.id,
-                          "assignee",
-                          e.target.value,
-                          true,
-                          task.id
-                        )
-                      }
-                      placeholder="담당자"
-                      className="border rounded p-1 w-full"
-                    />
+                  <div
+                    className="flex-none grid grid-cols-4"
+                    style={{ width: "550px" }}
+                  >
+                    <div className="p-2 border-r pl-8">
+                      <input
+                        type="text"
+                        value={subTask.title}
+                        onChange={(e) =>
+                          updateTask(
+                            subTask.id,
+                            "title",
+                            e.target.value,
+                            true,
+                            task.id
+                          )
+                        }
+                        className="border-b border-transparent hover:border-gray-300 focus:border-blue-500 outline-none w-full"
+                      />
+                    </div>
+                    <div className="p-2 border-r">
+                      <input
+                        type="date"
+                        value={subTask.startDate}
+                        onChange={(e) =>
+                          updateTask(
+                            subTask.id,
+                            "startDate",
+                            e.target.value,
+                            true,
+                            task.id
+                          )
+                        }
+                        className="border rounded p-1 w-full"
+                      />
+                    </div>
+                    <div className="p-2 border-r">
+                      <input
+                        type="date"
+                        value={subTask.endDate}
+                        onChange={(e) =>
+                          updateTask(
+                            subTask.id,
+                            "endDate",
+                            e.target.value,
+                            true,
+                            task.id
+                          )
+                        }
+                        className="border rounded p-1 w-full"
+                      />
+                    </div>
+                    <div className="p-2 border-r">
+                      <input
+                        type="text"
+                        value={subTask.assignee}
+                        onChange={(e) =>
+                          updateTask(
+                            subTask.id,
+                            "assignee",
+                            e.target.value,
+                            true,
+                            task.id
+                          )
+                        }
+                        placeholder="담당자"
+                        className="border rounded p-1 w-full"
+                      />
+                    </div>
                   </div>
 
-                  {/* 스크롤 영역 */}
-                  <div className="flex-grow overflow-hidden">
-                    <div className="relative h-10 grid grid-flow-col auto-cols-min">
-                      {generateDateHeaders().map((_, index) => (
-                        <div
-                          key={`bg-sub-${index}`}
-                          className="w-8 h-full border-r"
-                        ></div>
-                      ))}
+                  {/* 스크롤 영역 - 간트 바 */}
+                  <div
+                    className="flex-grow overflow-x-auto scroll-sync"
+                    style={{
+                      scrollbarWidth: "none",
+                      msOverflowStyle: "none",
+                      cursor: getCursorStyle(),
+                    }}
+                    onMouseDown={handleMouseDown}
+                    onMouseUp={handleMouseUp}
+                    onMouseMove={handleMouseMove}
+                  >
+                    <div
+                      className="relative"
+                      style={{
+                        height: "42px",
+                        minWidth: `${dateCells.length * 40}px`,
+                      }}
+                    >
+                      <div
+                        className="grid absolute inset-0"
+                        style={{
+                          gridTemplateColumns: `repeat(${dateCells.length}, 40px)`,
+                        }}
+                      >
+                        {dateCells.map((_, idx) => (
+                          <div
+                            key={`grid-sub-${idx}`}
+                            className="border-r h-full"
+                          ></div>
+                        ))}
+                      </div>
+
                       {(() => {
-                        const { startOffset, duration } = calculateBarPosition(
+                        const { startDay, duration } = calculateBarPosition(
                           subTask.startDate,
                           subTask.endDate
                         );
                         return (
                           <div
-                            className="absolute h-6 mt-2 rounded bg-green-500 text-white text-xs flex items-center justify-center px-1 overflow-hidden"
+                            className="absolute h-8 mt-1 rounded bg-green-500 text-white text-sm flex items-center justify-center px-2 overflow-hidden"
                             style={{
-                              left: `${startOffset * 32}px`,
-                              width: `${duration * 32 - 4}px`,
+                              left: `${startDay * 40}px`,
+                              width: `${duration * 40 - 4}px`,
+                              zIndex: 1,
                             }}
                           >
                             {subTask.title}
@@ -498,17 +735,19 @@ const GanttChart: React.FC = () => {
                 </div>
               ))}
 
+            {/* 하위 업무 추가 버튼 */}
             {task.expanded && (
               <div className="flex border-b bg-gray-100">
-                <div className="p-2 pl-10 w-64">
-                  <button
-                    onClick={() => addNewSubTask(task.id)}
-                    className="text-blue-500 hover:text-blue-700"
-                  >
-                    + 하위 업무 추가
-                  </button>
+                <div className="flex-none" style={{ width: "550px" }}>
+                  <div className="p-2 pl-8 border-r">
+                    <button
+                      onClick={() => addNewSubTask(task.id)}
+                      className="text-blue-500 hover:text-blue-700"
+                    >
+                      + 하위 업무 추가
+                    </button>
+                  </div>
                 </div>
-                <div className="w-96"></div>
                 <div className="flex-grow"></div>
               </div>
             )}

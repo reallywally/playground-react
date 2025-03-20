@@ -18,23 +18,26 @@ import UseCallBackTest from "./playground/useCallbackTest/Main";
 
 const App: React.FC = () => {
   return (
-    <Router>
-      <Layout>
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/users" element={<Users />} />
-          <Route path="/props-test" element={<Parent />} />
-          <Route path="/json-editor" element={<JsonEditor2 />} />
-          <Route path="/data-table-test" element={<DataTableTest />} />
-          <Route path="/use-state-test" element={<UseStateTest />} />
-          <Route path="/use-effect-test" element={<Counter />} />
-          <Route path="/mindmap-test" element={<MindMapTest />} />
-          <Route path="/gantt-chart-test" element={<GanttChart />} />
-          <Route path="/use-memo-test" element={<UseMemoTest />} />
-          <Route path="/use-callback-test" element={<UseCallBackTest />} />
-        </Routes>
-      </Layout>
-    </Router>
+    // <Router>
+    //   <Layout>
+    //     <Routes>
+    //       <Route path="/" element={<Dashboard />} />
+    //       <Route path="/users" element={<Users />} />
+    //       <Route path="/props-test" element={<Parent />} />
+    //       <Route path="/json-editor" element={<JsonEditor2 />} />
+    //       <Route path="/data-table-test" element={<DataTableTest />} />
+    //       <Route path="/use-state-test" element={<UseStateTest />} />
+    //       <Route path="/use-effect-test" element={<Counter />} />
+    //       <Route path="/mindmap-test" element={<MindMapTest />} />
+    //       <Route path="/gantt-chart-test" element={<GanttChart />} />
+    //       <Route path="/use-memo-test" element={<UseMemoTest />} />
+    //       <Route path="/use-callback-test" element={<UseCallBackTest />} />
+    //     </Routes>
+    //   </Layout>
+    // </Router>
+    <>
+      <GanttChart />
+    </>
   );
 };
 
