@@ -15,29 +15,31 @@ import MindMapTest from "./playground/mindmapTest/MindMapTest";
 import GanttChart from "./playground/ganttChart/GanttChart2";
 import UseMemoTest from "./playground/useMemoTest/Main";
 import UseCallBackTest from "./playground/useCallbackTest/Main";
+import FormulaTest from "./playground/formulaTest/FormulaTest";
 
 const App: React.FC = () => {
   return (
-    // <Router>
-    //   <Layout>
-    //     <Routes>
-    //       <Route path="/" element={<Dashboard />} />
-    //       <Route path="/users" element={<Users />} />
-    //       <Route path="/props-test" element={<Parent />} />
-    //       <Route path="/json-editor" element={<JsonEditor2 />} />
-    //       <Route path="/data-table-test" element={<DataTableTest />} />
-    //       <Route path="/use-state-test" element={<UseStateTest />} />
-    //       <Route path="/use-effect-test" element={<Counter />} />
-    //       <Route path="/mindmap-test" element={<MindMapTest />} />
-    //       <Route path="/gantt-chart-test" element={<GanttChart />} />
-    //       <Route path="/use-memo-test" element={<UseMemoTest />} />
-    //       <Route path="/use-callback-test" element={<UseCallBackTest />} />
-    //     </Routes>
-    //   </Layout>
-    // </Router>
-    <>
-      <GanttChart />
-    </>
+    <Router>
+      <Layout>
+        <Routes>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/users" element={<Users />} />
+          <Route path="/props-test" element={<Parent />} />
+          <Route path="/json-editor" element={<JsonEditor2 />} />
+          <Route path="/data-table-test" element={<DataTableTest />} />
+          <Route path="/use-state-test" element={<UseStateTest />} />
+          <Route path="/use-effect-test" element={<Counter />} />
+          <Route path="/mindmap-test" element={<MindMapTest />} />
+          <Route path="/gantt-chart-test" element={<GanttChart />} />
+          <Route path="/use-memo-test" element={<UseMemoTest />} />
+          <Route path="/use-callback-test" element={<UseCallBackTest />} />
+          <Route path="/formula-test" element={<FormulaTest />} />
+        </Routes>
+      </Layout>
+    </Router>
+    // <>
+    //   <GanttChart />
+    // </>
   );
 };
 
